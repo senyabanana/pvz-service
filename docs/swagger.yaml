@@ -1,0 +1,438 @@
+basePath: /
+definitions:
+  dto.DummyLoginRequest:
+    properties:
+      role:
+        type: string
+    required:
+    - role
+    type: object
+  dto.ErrorResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  dto.FullPVZResponse:
+    properties:
+      pvz:
+        $ref: '#/definitions/dto.PVZResponse'
+      receptions:
+        items:
+          $ref: '#/definitions/dto.ReceptionWithProducts'
+        type: array
+    type: object
+  dto.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 6
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  dto.PVZRequest:
+    properties:
+      city:
+        type: string
+    required:
+    - city
+    type: object
+  dto.PVZResponse:
+    properties:
+      city:
+        type: string
+      id:
+        type: string
+      registrationDate:
+        type: string
+    type: object
+  dto.ProductRequest:
+    properties:
+      pvzId:
+        type: string
+      type:
+        type: string
+    required:
+    - pvzId
+    - type
+    type: object
+  dto.ProductResponse:
+    properties:
+      dateTime:
+        type: string
+      id:
+        type: string
+      receptionId:
+        type: string
+      type:
+        type: string
+    type: object
+  dto.ReceptionRequest:
+    properties:
+      pvzId:
+        type: string
+    required:
+    - pvzId
+    type: object
+  dto.ReceptionResponse:
+    properties:
+      dateTime:
+        type: string
+      id:
+        type: string
+      pvzId:
+        type: string
+      status:
+        type: string
+    type: object
+  dto.ReceptionWithProducts:
+    properties:
+      products:
+        items:
+          $ref: '#/definitions/dto.ProductResponse'
+        type: array
+      reception:
+        $ref: '#/definitions/dto.ReceptionResponse'
+    type: object
+  dto.RegisterRequest:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 6
+        type: string
+      role:
+        type: string
+    required:
+    - email
+    - password
+    - role
+    type: object
+  dto.TokenResponse:
+    properties:
+      token:
+        type: string
+    type: object
+  dto.UserResponse:
+    properties:
+      email:
+        type: string
+      id:
+        type: string
+      role:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API для управления пунктами выдачи заказов (ПВЗ), приёмками и товарами.
+  title: PVZ Service API
+  version: "1.0"
+paths:
+  /dummyLogin:
+    post:
+      consumes:
+      - application/json
+      description: Получение токена без регистрации (по роли)
+      parameters:
+      - description: User role
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/dto.DummyLoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.TokenResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Dummy Login
+      tags:
+      - auth
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Авторизация пользователя и получение токена
+      parameters:
+      - description: Login credentials
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.TokenResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Login User
+      tags:
+      - auth
+  /products:
+    post:
+      consumes:
+      - application/json
+      description: Добавление товара в текущую приёмку ПВЗ
+      parameters:
+      - description: Product payload
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ProductRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.ProductResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Add Product
+      tags:
+      - product
+  /pvz:
+    get:
+      consumes:
+      - application/json
+      description: Получение информации о ПВЗ с приёмками и товарами
+      parameters:
+      - description: Фильтрация по дате начала (RFC3339)
+        in: query
+        name: startDate
+        type: string
+      - description: Фильтрация по дате окончания (RFC3339)
+        in: query
+        name: endDate
+        type: string
+      - description: Номер страницы (по умолчанию 1)
+        in: query
+        name: page
+        type: integer
+      - description: Лимит элементов на странице (по умолчанию 10)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.FullPVZResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get Full Info PVZ
+      tags:
+      - pvz
+    post:
+      consumes:
+      - application/json
+      description: Создание ПВЗ
+      parameters:
+      - description: Город ПВЗ
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.PVZRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.PVZResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create PVZ
+      tags:
+      - pvz
+  /pvz/{pvzId}/close_last_reception:
+    post:
+      consumes:
+      - application/json
+      description: Закрытие последней открытой приёмки у ПВЗ
+      parameters:
+      - description: PVZ ID
+        in: path
+        name: pvzId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ReceptionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Close Last Reception
+      tags:
+      - reception
+  /pvz/{pvzId}/delete_last_product:
+    post:
+      consumes:
+      - application/json
+      description: Удаление последнего добавленного товара из текущей приёмки
+      parameters:
+      - description: PVZ ID
+        in: path
+        name: pvzId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete Last Product
+      tags:
+      - product
+  /receptions:
+    post:
+      consumes:
+      - application/json
+      description: Создание приёмки для ПВЗ
+      parameters:
+      - description: PVZ ID
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ReceptionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.ReceptionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create Reception
+      tags:
+      - reception
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Регистрация нового пользователя
+      parameters:
+      - description: User credentials
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Register User
+      tags:
+      - auth
+schemes:
+- http
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
