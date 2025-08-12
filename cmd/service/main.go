@@ -11,7 +11,7 @@ import (
 	trmsqlx "github.com/avito-tech/go-transaction-manager/drivers/sqlx/v2"
 	"github.com/avito-tech/go-transaction-manager/trm/v2/manager"
 
-	//_ "github.com/senyabanana/pvz-service/docs"
+	_ "github.com/senyabanana/pvz-service/docs"
 	"github.com/senyabanana/pvz-service/internal/handler"
 	"github.com/senyabanana/pvz-service/internal/infrastructure/config"
 	"github.com/senyabanana/pvz-service/internal/infrastructure/database"
